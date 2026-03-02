@@ -5,6 +5,7 @@ import Course from "./components/Course";
 import Search from "./components/Search";
 import AddContact from "./components/AddContact.jsx";
 import Display from "./components/Display.jsx";
+import phonebookService from "./services/phonebook.js";
 
 const App = () => {
   const courses = [
@@ -52,45 +53,33 @@ const App = () => {
     },
   ];
 
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-1234567" },
-  ]);
-  const [newName, setNewName] = useState("");
-  const [newNumber, setNewNumber] = useState("");
+  const [persons, setPersons] = useState([]);
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
-      console.log(response.data);
-      setPersons(response.data);
+    phonebookService.getAll().then((data) => {
+      console.log(data);
+      setPersons(data);
     });
   }, []);
 
-  const addPerson = (event) => {
-    event.preventDefault();
-    console.log("button clicked", event.target);
-    // const name = event.target;
-    const personObject = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1,
-    };
-    if (persons.some((person) => person.name === newName)) {
+  const addPerson = (person) => {
+    if (persons.some((item) => item.name === person.name)) {
       alert(`${newName} is already added to phonebook`);
       return;
     }
-    setPersons(persons.concat(personObject));
-    setNewName("");
+
+    phonebookService.create(person).then((returnedPerson) => {
+      setPersons(persons.concat(returnedPerson));
+    });
   };
 
-  const handleChange = (event) => {
-    console.log(event.target.value);
-    setNewName(event.target.value);
-  };
-
-  const handleNumberChange = (event) => {
-    console.log(event.target.value);
-    setNewNumber(event.target.value);
+  const handleDeleteClicked = (id) => {
+    phonebookService.deletePerson(id).then(() => {
+      setPersons((currentList) =>
+        currentList.filter((person) => person.id !== id),
+      );
+    });
   };
 
   return (
@@ -104,10 +93,13 @@ const App = () => {
         <h2>Phonebook</h2>
 
         <Search searchText={searchText} setSearchText={setSearchText} />
-        <h3>Add Person to Contacts</h3>
-        <AddContact></AddContact>
+        <AddContact onAddPersonClicked={addPerson}></AddContact>
         <h2>Numbers</h2>
-        <Display persons={persons} searchText={searchText}></Display>
+        <Display
+          persons={persons}
+          searchText={searchText}
+          onDeleteClicked={handleDeleteClicked}
+        ></Display>
       </div>
     </>
   );

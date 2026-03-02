@@ -1,4 +1,8 @@
-const Display = ({ persons, searchText }) => {
+const Display = ({ persons, searchText, onDeleteClicked }) => {
+  if (!persons || persons.length === 0) {
+    return <p>No contacts to display</p>;
+  }
+
   return (
     <ul>
       {persons
@@ -9,8 +13,9 @@ const Display = ({ persons, searchText }) => {
           );
         })
         .map((person) => (
-          <li key={person.name}>
-            {person.name} {person.number}
+          <li key={person.id}>
+            {person.name} {person.number}{" "}
+            <button onClick={() => onDeleteClicked(person.id)}>delete</button>
           </li>
         ))}
     </ul>
