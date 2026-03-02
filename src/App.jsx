@@ -3,58 +3,58 @@ import axios from "axios";
 
 import Course from "./components/Course";
 import Search from "./components/Search";
-import AddContact from "./components/AddContact.jsx";
+import ContactForm from "./components/ContactForm.jsx";
 import Display from "./components/Display.jsx";
-import phonebookService from "./services/phonebook.js";
+import phonebookService from "./services/phonebookApi.js";
+const courses = [
+  {
+    id: 1,
+    name: "Half Stack application development",
+    parts: [
+      {
+        name: "Fundamentals of React",
+        exercises: 10,
+        id: 1,
+      },
+      {
+        name: "Using props to pass data",
+        exercises: 7,
+        id: 2,
+      },
+      {
+        name: "State of a component",
+        exercises: 14,
+        id: 3,
+      },
+      {
+        name: "Redux",
+        exercises: 11,
+        id: 4,
+      },
+    ],
+  },
+  {
+    name: "Node.js",
+    id: 2,
+    parts: [
+      {
+        name: "Routing",
+        exercises: 3,
+        id: 1,
+      },
+      {
+        name: "Middleware",
+        exercises: 7,
+        id: 2,
+      },
+    ],
+  },
+];
 
 const App = () => {
-  const courses = [
-    {
-      id: 1,
-      name: "Half Stack application development",
-      parts: [
-        {
-          name: "Fundamentals of React",
-          exercises: 10,
-          id: 1,
-        },
-        {
-          name: "Using props to pass data",
-          exercises: 7,
-          id: 2,
-        },
-        {
-          name: "State of a component",
-          exercises: 14,
-          id: 3,
-        },
-        {
-          name: "Redux",
-          exercises: 11,
-          id: 4,
-        },
-      ],
-    },
-    {
-      name: "Node.js",
-      id: 2,
-      parts: [
-        {
-          name: "Routing",
-          exercises: 3,
-          id: 1,
-        },
-        {
-          name: "Middleware",
-          exercises: 7,
-          id: 2,
-        },
-      ],
-    },
-  ];
-
   const [persons, setPersons] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [contactToEdit, setContactToEdit] = useState(null);
 
   useEffect(() => {
     phonebookService.getAll().then((data) => {
@@ -63,15 +63,35 @@ const App = () => {
     });
   }, []);
 
-  const addPerson = (person) => {
+  const addPerson = async (person) => {
     if (persons.some((item) => item.name === person.name)) {
       alert(`${newName} is already added to phonebook`);
       return;
     }
 
-    phonebookService.create(person).then((returnedPerson) => {
+    try {
+      const returnedPerson = await phonebookService.create(person);
       setPersons(persons.concat(returnedPerson));
-    });
+    } catch (error) {
+      alert("Error adding person");
+    }
+  };
+
+  const updatePerson = async (person) => {
+    try {
+      const updatedPerson = await phonebookService.update(person.id, person);
+      setPersons(
+        persons.map((item) => (item.id === person.id ? updatedPerson : item)),
+      );
+      setContactToEdit(null);
+    } catch (error) {
+      alert("Error updating person");
+    }
+  };
+
+  const handleEditClicked = (person) => {
+    console.log("Edit clicked for person:", person);
+    setContactToEdit(person);
   };
 
   const handleDeleteClicked = (id) => {
@@ -93,11 +113,15 @@ const App = () => {
         <h2>Phonebook</h2>
 
         <Search searchText={searchText} setSearchText={setSearchText} />
-        <AddContact onAddPersonClicked={addPerson}></AddContact>
+        <ContactForm
+          contact={contactToEdit}
+          onSave={contactToEdit ? updatePerson : addPerson}
+        ></ContactForm>
         <h2>Numbers</h2>
         <Display
-          persons={persons}
+          personList={persons}
           searchText={searchText}
+          onEditClicked={handleEditClicked}
           onDeleteClicked={handleDeleteClicked}
         ></Display>
       </div>

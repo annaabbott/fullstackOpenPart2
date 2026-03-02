@@ -1,11 +1,16 @@
-const Display = ({ persons, searchText, onDeleteClicked }) => {
-  if (!persons || persons.length === 0) {
+const Display = ({
+  personList,
+  searchText,
+  onEditClicked,
+  onDeleteClicked,
+}) => {
+  if (!personList || personList.length === 0) {
     return <p>No contacts to display</p>;
   }
 
   return (
     <ul>
-      {persons
+      {personList
         .filter((person) => {
           return (
             !searchText ||
@@ -15,6 +20,7 @@ const Display = ({ persons, searchText, onDeleteClicked }) => {
         .map((person) => (
           <li key={person.id}>
             {person.name} {person.number}{" "}
+            <button onClick={() => onEditClicked(person)}>edit</button>
             <button onClick={() => onDeleteClicked(person.id)}>delete</button>
           </li>
         ))}

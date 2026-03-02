@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const AddContact = ({ onAddPersonClicked }) => {
+export default function ContactForm({ contact, onSave }) {
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
 
-  async function handleAddPersonClicked(event) {
+  async function handleSaveClicked(event) {
     event.preventDefault();
     if (!name) {
       alert("Name is required");
@@ -15,7 +15,8 @@ const AddContact = ({ onAddPersonClicked }) => {
       return;
     }
 
-    await onAddPersonClicked({
+    await onSave({
+      id: contact ? contact.id : undefined,
       name,
       number,
     });
@@ -32,10 +33,21 @@ const AddContact = ({ onAddPersonClicked }) => {
     setNumber(event.target.value);
   }
 
+  useEffect(() => {
+    if (!contact) {
+      setName("");
+      setNumber("");
+      return;
+    }
+
+    setName(contact.name);
+    setNumber(contact.number);
+  }, [contact]);
+
   return (
     <>
-      <h3>Add Person to Contacts</h3>
-      <form onSubmit={handleAddPersonClicked}>
+      <h3>{contact ? "Edit" : "Add"} Person to Contacts</h3>
+      <form onSubmit={handleSaveClicked}>
         <div>
           <input
             type="text"
@@ -53,11 +65,9 @@ const AddContact = ({ onAddPersonClicked }) => {
           ></input>
         </div>
         <div>
-          <button type="submit">add</button>
+          <button type="submit">{contact ? "Update" : "Add"}</button>
         </div>
       </form>
     </>
   );
-};
-
-export default AddContact;
+}
