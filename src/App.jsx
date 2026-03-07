@@ -1,11 +1,14 @@
+import "./index.css";
 import { useState, useEffect } from "react";
-import axios from "axios";
 
 import Course from "./components/Course";
 import Search from "./components/Search";
 import ContactForm from "./components/ContactForm.jsx";
 import Display from "./components/Display.jsx";
 import phonebookService from "./services/phonebookApi.js";
+import SuccessMsg from "./components/SuccessMsg.jsx";
+import ErrorMsg from "./components/ErrorMsg.jsx";
+
 const courses = [
   {
     id: 1,
@@ -55,6 +58,8 @@ const App = () => {
   const [persons, setPersons] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [contactToEdit, setContactToEdit] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     phonebookService.getAll().then((data) => {
@@ -63,17 +68,32 @@ const App = () => {
     });
   }, []);
 
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 5000);
+  };
+
+  const showErrorMessage = (message) => {
+    setErrorMessage(message);
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 5000);
+  };
+
   const addPerson = async (person) => {
     if (persons.some((item) => item.name === person.name)) {
-      alert(`${newName} is already added to phonebook`);
+      showErrorMessage(`${person.name} is already added to phonebook`);
       return;
     }
 
     try {
       const returnedPerson = await phonebookService.create(person);
       setPersons(persons.concat(returnedPerson));
+      showSuccessMessage(`Added ${returnedPerson.name}`);
     } catch (error) {
-      alert("Error adding person");
+      showErrorMessage("Error adding person");
     }
   };
 
@@ -84,8 +104,9 @@ const App = () => {
         persons.map((item) => (item.id === person.id ? updatedPerson : item)),
       );
       setContactToEdit(null);
+      showSuccessMessage(`Updated ${updatedPerson.name}`);
     } catch (error) {
-      alert("Error updating person");
+      showErrorMessage("Error updating person");
     }
   };
 
@@ -111,7 +132,8 @@ const App = () => {
       </div>
       <div>
         <h2>Phonebook</h2>
-
+        <SuccessMsg message={successMessage} />
+        <ErrorMsg message={errorMessage} />
         <Search searchText={searchText} setSearchText={setSearchText} />
         <ContactForm
           contact={contactToEdit}
